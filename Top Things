@@ -1,0 +1,291 @@
+<form>
+  <label>Top Things</label>
+  <fieldset submitButton="true">
+    <input type="time" token="field1">
+      <label></label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <table>
+        <title>Top Inbound Source ENUM</title>
+        <search>
+          <query>index="policyguru_data" resourceId="enum*" NOT disposition.disposition="*"
+| rex field=meta "direction(?&lt;place_holder&gt;.)(?&lt;direction&gt;.*)"
+| search direction="INBOUND"
+| rename connections{}.left.facets{}.number as sourcenumber
+| eval sourcenumber=mvdedup(sourcenumber)
+| rename connections{}.right.facets{}.number as destinationnumber
+| eval destinationnumber=mvdedup(destinationnumber)
+| table _time 
+timestamp 
+timestampStr 
+state.state 
+state.stateEnum 
+source 
+resourceId 
+direction
+guid 
+modalities{}.modality
+connections{}.right.facets{}.cc
+connections{}.right.facets{}.xc
+connections{}.right.facets{}.region 
+connections{}.right.facets{}.rc 
+destinationnumber
+connections{}.left.facets{}.cc 
+connections{}.left.facets{}.xc 
+connections{}.left.facets{}.region 
+connections{}.left.facets{}.rc 
+connections{}.left.facets{}.country 
+sourcenumber
+connections{}.control.l7{}.meta
+| rename
+state.state as state
+state.stateEnum as enum_state
+resourceId as routername 
+modalities{}.modality as call_type
+connections{}.left.facets{}.cc as source_cc
+connections{}.left.facets{}.xc as source_xc
+connections{}.left.facets{}.region as source_region
+connections{}.left.facets{}.rc as source_rc
+connections{}.left.facets{}.country as source_country
+connections{}.right.facets{}.cc as destination_cc
+connections{}.right.facets{}.xc as desination_xc
+connections{}.right.facets{}.region as destination_region
+connections{}.right.facets{}.rc as destination_rc
+connections{}.right.facets{}.country as destination_country
+connections{}.control.l7{}.meta as calldisposition
+| eval source_cc=mvdedup(source_cc)
+| eval source_xc=mvdedup(source_xc)
+| eval source_region=mvdedup(source_region)
+| eval source_rc=mvdedup(source_rc)
+| eval source_country=mvdedup(source_country)
+| eval destination_cc=mvdedup(destination_cc)
+| eval desination_xc=mvdedup(desination_xc)
+| eval destination_region=mvdedup(destination_region)
+| eval destination_rc=mvdedup(destination_rc)
+| eval destination_country=mvdedup(destination_country)
+| eval calldisposition=mvdedup(calldisposition)
+| stats count by sourcenumber
+| sort -count
+| head 5</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Top Inbound Destination ENUM</title>
+        <search>
+          <query>index="policyguru_data" resourceId="enum*" NOT disposition.disposition="*"
+| rex field=meta "direction(?&lt;place_holder&gt;.)(?&lt;direction&gt;.*)"
+| search direction="INBOUND"
+| rename connections{}.left.facets{}.number as sourcenumber
+| eval sourcenumber=mvdedup(sourcenumber)
+| rename connections{}.right.facets{}.number as destinationnumber
+| eval destinationnumber=mvdedup(destinationnumber)
+| table _time 
+timestamp 
+timestampStr 
+state.state 
+state.stateEnum 
+source 
+resourceId 
+direction
+guid 
+modalities{}.modality
+connections{}.right.facets{}.cc
+connections{}.right.facets{}.xc
+connections{}.right.facets{}.region 
+connections{}.right.facets{}.rc 
+destinationnumber
+connections{}.left.facets{}.cc 
+connections{}.left.facets{}.xc 
+connections{}.left.facets{}.region 
+connections{}.left.facets{}.rc 
+connections{}.left.facets{}.country 
+sourcenumber
+connections{}.control.l7{}.meta
+| rename
+state.state as state
+state.stateEnum as enum_state
+resourceId as routername 
+modalities{}.modality as call_type
+connections{}.left.facets{}.cc as source_cc
+connections{}.left.facets{}.xc as source_xc
+connections{}.left.facets{}.region as source_region
+connections{}.left.facets{}.rc as source_rc
+connections{}.left.facets{}.country as source_country
+connections{}.right.facets{}.cc as destination_cc
+connections{}.right.facets{}.xc as desination_xc
+connections{}.right.facets{}.region as destination_region
+connections{}.right.facets{}.rc as destination_rc
+connections{}.right.facets{}.country as destination_country
+connections{}.control.l7{}.meta as calldisposition
+| eval source_cc=mvdedup(source_cc)
+| eval source_xc=mvdedup(source_xc)
+| eval source_region=mvdedup(source_region)
+| eval source_rc=mvdedup(source_rc)
+| eval source_country=mvdedup(source_country)
+| eval destination_cc=mvdedup(destination_cc)
+| eval desination_xc=mvdedup(desination_xc)
+| eval destination_region=mvdedup(destination_region)
+| eval destination_rc=mvdedup(destination_rc)
+| eval destination_country=mvdedup(destination_country)
+| eval calldisposition=mvdedup(calldisposition)
+| stats count by destinationnumber
+| sort -count</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Top Inbound Source SIP</title>
+        <search>
+          <query>index="policyguru_data" resourceId="sip*" NOT disposition.disposition="*"
+| rex field=meta "direction(?&lt;place_holder&gt;.)(?&lt;direction&gt;.*)"
+| search direction="INBOUND"
+| rename connections{}.left.facets{}.number as sourcenumber
+| eval sourcenumber=mvdedup(sourcenumber)
+| rename connections{}.right.facets{}.number as destinationnumber
+| eval destinationnumber=mvdedup(destinationnumber)
+| table _time 
+timestamp 
+timestampStr 
+state.state 
+state.stateEnum 
+source 
+resourceId 
+direction
+guid 
+modalities{}.modality
+connections{}.right.facets{}.cc
+connections{}.right.facets{}.xc
+connections{}.right.facets{}.region 
+connections{}.right.facets{}.rc 
+destinationnumber
+connections{}.left.facets{}.cc 
+connections{}.left.facets{}.xc 
+connections{}.left.facets{}.region 
+connections{}.left.facets{}.rc 
+connections{}.left.facets{}.country 
+sourcenumber
+connections{}.control.l7{}.meta
+| rename
+state.state as state
+state.stateEnum as enum_state
+resourceId as routername 
+modalities{}.modality as call_type
+connections{}.left.facets{}.cc as source_cc
+connections{}.left.facets{}.xc as source_xc
+connections{}.left.facets{}.region as source_region
+connections{}.left.facets{}.rc as source_rc
+connections{}.left.facets{}.country as source_country
+connections{}.right.facets{}.cc as destination_cc
+connections{}.right.facets{}.xc as desination_xc
+connections{}.right.facets{}.region as destination_region
+connections{}.right.facets{}.rc as destination_rc
+connections{}.right.facets{}.country as destination_country
+connections{}.control.l7{}.meta as calldisposition
+| eval source_cc=mvdedup(source_cc)
+| eval source_xc=mvdedup(source_xc)
+| eval source_region=mvdedup(source_region)
+| eval source_rc=mvdedup(source_rc)
+| eval source_country=mvdedup(source_country)
+| eval destination_cc=mvdedup(destination_cc)
+| eval desination_xc=mvdedup(desination_xc)
+| eval destination_region=mvdedup(destination_region)
+| eval destination_rc=mvdedup(destination_rc)
+| eval destination_country=mvdedup(destination_country)
+| eval calldisposition=mvdedup(calldisposition)
+| stats count by sourcenumber
+| sort -count
+| head 10</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Top Inbound Destination SIP</title>
+        <search>
+          <query>index="policyguru_data" resourceId="sip*" NOT disposition.disposition="*"
+| rex field=meta "direction(?&lt;place_holder&gt;.)(?&lt;direction&gt;.*)"
+| search direction="INBOUND"
+| rename connections{}.left.facets{}.number as sourcenumber
+| eval sourcenumber=mvdedup(sourcenumber)
+| rename connections{}.right.facets{}.number as destinationnumber
+| eval destinationnumber=mvdedup(destinationnumber)
+| table _time 
+timestamp 
+timestampStr 
+state.state 
+state.stateEnum 
+source 
+resourceId 
+direction
+guid 
+modalities{}.modality
+connections{}.right.facets{}.cc
+connections{}.right.facets{}.xc
+connections{}.right.facets{}.region 
+connections{}.right.facets{}.rc 
+destinationnumber
+connections{}.left.facets{}.cc 
+connections{}.left.facets{}.xc 
+connections{}.left.facets{}.region 
+connections{}.left.facets{}.rc 
+connections{}.left.facets{}.country 
+sourcenumber
+connections{}.control.l7{}.meta
+| rename
+state.state as state
+state.stateEnum as enum_state
+resourceId as routername 
+modalities{}.modality as call_type
+connections{}.left.facets{}.cc as source_cc
+connections{}.left.facets{}.xc as source_xc
+connections{}.left.facets{}.region as source_region
+connections{}.left.facets{}.rc as source_rc
+connections{}.left.facets{}.country as source_country
+connections{}.right.facets{}.cc as destination_cc
+connections{}.right.facets{}.xc as desination_xc
+connections{}.right.facets{}.region as destination_region
+connections{}.right.facets{}.rc as destination_rc
+connections{}.right.facets{}.country as destination_country
+connections{}.control.l7{}.meta as calldisposition
+| eval source_cc=mvdedup(source_cc)
+| eval source_xc=mvdedup(source_xc)
+| eval source_region=mvdedup(source_region)
+| eval source_rc=mvdedup(source_rc)
+| eval source_country=mvdedup(source_country)
+| eval destination_cc=mvdedup(destination_cc)
+| eval desination_xc=mvdedup(desination_xc)
+| eval destination_region=mvdedup(destination_region)
+| eval destination_rc=mvdedup(destination_rc)
+| eval destination_country=mvdedup(destination_country)
+| eval calldisposition=mvdedup(calldisposition)
+| stats count by destinationnumber
+| sort -count
+| head 10</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+</form>
