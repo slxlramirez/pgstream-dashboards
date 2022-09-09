@@ -1,0 +1,188 @@
+{
+	"visualizations": {
+		"viz_ccSgoTsF": {
+			"type": "viz.column",
+			"dataSources": {
+				"primary": "ds_EUno6pfp"
+			},
+			"title": "Enum Calls by 15m",
+			"options": {
+				"axisTitleX.text": "Time",
+				"legend.placement": "bottom",
+				"chart.showDataLabels": "minmax"
+			}
+		},
+		"viz_i1AO6U8H": {
+			"type": "splunk.table",
+			"dataSources": {
+				"primary": "ds_4pirORKI"
+			},
+			"title": "Top 10 Source Numbers"
+		},
+		"viz_JQT9Vw9J": {
+			"type": "splunk.table",
+			"dataSources": {
+				"primary": "ds_qXfETJfj"
+			},
+			"title": "Top Destinations"
+		},
+		"viz_2FqE9P7S": {
+			"type": "splunk.singlevalue",
+			"dataSources": {
+				"primary": "ds_AjXUGLcy"
+			},
+			"title": "Total Calls"
+		},
+		"viz_g9e8zd4w": {
+			"type": "splunk.singlevalue",
+			"dataSources": {
+				"primary": "ds_3C4OBh98"
+			},
+			"title": "Inbound Calls"
+		},
+		"viz_oagNoQng": {
+			"type": "splunk.singlevalue",
+			"dataSources": {
+				"primary": "ds_Jp8wz25v"
+			},
+			"title": "Outbound Calls"
+		}
+	},
+	"dataSources": {
+		"ds_EUno6pfp": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=\"policyguru_data\" resourceId=\"enum*\" NOT disposition.disposition=\"*\"\n| timechart count span=15m"
+			},
+			"name": "Search_1"
+		},
+		"ds_4pirORKI": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=\"policyguru_data\" resourceId=\"enum*\" NOT disposition.disposition=\"*\"\n| table meta connections{}.left.facets{}.number\n| rename connections{}.left.facets{}.number as sourcenumber\n| rex field=meta \"direction:(?<direction>.*)\"\n| search direction=\"INBOUND\"\n| eval sourcenumber=mvdedup(sourcenumber)\n| stats count by sourcenumber\n| sort -count\n| head 10"
+			},
+			"name": "Search_2"
+		},
+		"ds_qXfETJfj": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=\"policyguru_data\" resourceId=\"enum*\" NOT disposition.disposition=\"*\"\n| table meta connections{}.right.facets{}.number\n| rename connections{}.right.facets{}.number as destinationnumber\n| rex field=meta \"direction:(?<direction>.*)\"\n| search direction=\"INBOUND\"\n| eval destinationnumber=mvdedup(destinationnumber)\n| stats count by destinationnumber\n| sort -count\n| head 10"
+			},
+			"name": "Search_3"
+		},
+		"ds_AjXUGLcy": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=\"policyguru_data\" resourceId=\"enum*\" NOT disposition.disposition=\"*\"\n| stats count"
+			},
+			"name": "Search_4"
+		},
+		"ds_3C4OBh98": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=\"policyguru_data\" resourceId=\"enum*\" NOT disposition.disposition=\"*\"\n| rex field=meta \"direction:(?<direction>.*)\"\n| search direction=\"INBOUND\"\n| stats count"
+			},
+			"name": "Search_5"
+		},
+		"ds_Jp8wz25v": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=\"policyguru_data\" resourceId=\"enum*\" NOT disposition.disposition=\"*\"\n| rex field=meta \"direction:(?<direction>.*)\"\n| search direction=\"OUTBOUND\"\n| stats count"
+			},
+			"name": "Search_6"
+		}
+	},
+	"defaults": {
+		"dataSources": {
+			"ds.search": {
+				"options": {
+					"queryParameters": {
+						"latest": "$global_time.latest$",
+						"earliest": "$global_time.earliest$"
+					}
+				}
+			}
+		}
+	},
+	"inputs": {
+		"input_global_trp": {
+			"type": "input.timerange",
+			"options": {
+				"token": "global_time",
+				"defaultValue": "-24h@h,now"
+			},
+			"title": "Global Time Range"
+		}
+	},
+	"layout": {
+		"type": "grid",
+		"options": {},
+		"structure": [
+			{
+				"item": "viz_i1AO6U8H",
+				"type": "block",
+				"position": {
+					"x": 0,
+					"y": 400,
+					"w": 600,
+					"h": 400
+				}
+			},
+			{
+				"item": "viz_JQT9Vw9J",
+				"type": "block",
+				"position": {
+					"x": 600,
+					"y": 400,
+					"w": 600,
+					"h": 400
+				}
+			},
+			{
+				"item": "viz_ccSgoTsF",
+				"type": "block",
+				"position": {
+					"x": 0,
+					"y": 200,
+					"w": 1200,
+					"h": 200
+				}
+			},
+			{
+				"item": "viz_oagNoQng",
+				"type": "block",
+				"position": {
+					"x": 817,
+					"y": 0,
+					"w": 383,
+					"h": 200
+				}
+			},
+			{
+				"item": "viz_2FqE9P7S",
+				"type": "block",
+				"position": {
+					"x": 0,
+					"y": 0,
+					"w": 438,
+					"h": 200
+				}
+			},
+			{
+				"item": "viz_g9e8zd4w",
+				"type": "block",
+				"position": {
+					"x": 438,
+					"y": 0,
+					"w": 379,
+					"h": 200
+				}
+			}
+		],
+		"globalInputs": [
+			"input_global_trp"
+		]
+	},
+	"description": "",
+	"title": "PolicyGuru ENUM Calls"
+}
