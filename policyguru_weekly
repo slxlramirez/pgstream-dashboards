@@ -1,0 +1,313 @@
+<dashboard>
+  <label>Policy Guru Weekly</label>
+  <row>
+    <panel>
+      <table>
+        <search>
+          <query>| makeresults 
+| eval notes="Business Partner: SecureLogix" 
+| append 
+[
+| makeresults 
+| eval notes="Deliverable: PolicyGuru Weekly" 
+]
+| append
+[
+| search index="policyguru_data" resourceId="enum*" disposition.disposition="*"
+| table _time disposition.dispositionEnum	
+| timechart span=1d count by disposition.dispositionEnum	
+| rename disposition.dispositionEnum as disposition
+| stats min(_time) AS startDate, max(_time) AS endDate
+| convert timeformat="%F" ctime(*Date)
+| eval notes="Dates Covered: " . startDate . " to " . endDate
+| fields notes
+]
+| fields - _time
+| rename notes as "Report Information"</query>
+          <earliest>-7d@w0</earliest>
+          <latest>@w0</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Inbound Calls by Day by Policy Disposition (8 Week Trend)</title>
+        <search>
+          <query>index="policyguru_data" resourceId="enum*" NOT disposition.disposition="*"
+| rex field=meta "direction(?&lt;place_holder&gt;.)(?&lt;direction&gt;.*)"
+| search direction="INBOUND"	
+| timechart span=1d count by disposition.dispositionEnum	
+| rename disposition.dispositionEnum as disposition</query>
+          <earliest>-8w@w</earliest>
+          <latest>@w</latest>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Inbound Calls by Day by Hour by Disposition (Last Week)</title>
+        <search>
+          <query>index="policyguru_data" resourceId="enum*" NOT disposition.disposition="*"
+| rex field=meta "direction(?&lt;place_holder&gt;.)(?&lt;direction&gt;.*)"
+| search direction="INBOUND"
+| timechart span=1h count by disposition.dispositionEnum	
+| rename disposition.dispositionEnum as disposition</query>
+          <earliest>-7d@w0</earliest>
+          <latest>@w0</latest>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <single>
+        <title>Allowed Calls (Trend 8)</title>
+        <search>
+          <query>index="policyguru_data" resourceId="enum*" disposition.disposition="*"	
+| search disposition.dispositionEnum="ALLOWED"
+| timechart span=1w count by disposition.dispositionEnum</query>
+          <earliest>-8w@w</earliest>
+          <latest>@w</latest>
+        </search>
+        <option name="colorBy">trend</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Terminated Calls (Trend 8)</title>
+        <search>
+          <query>index="policyguru_data" resourceId="enum*" disposition.disposition="*"	
+| search disposition.dispositionEnum="TERMINATED"
+| timechart span=1w count by disposition.dispositionEnum</query>
+          <earliest>-8w@w</earliest>
+          <latest>@w</latest>
+        </search>
+        <option name="colorBy">trend</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Top Inbound Source Numbers</title>
+        <search>
+          <query>index="policyguru_data" resourceId="enum*" NOT disposition.disposition="*"
+| rex field=meta "direction(?&lt;place_holder&gt;.)(?&lt;direction&gt;.*)"
+| search direction="INBOUND"
+| rename connections{}.left.facets{}.number as sourcenumber
+| eval sourcenumber=mvdedup(sourcenumber)
+| stats count by sourcenumber
+| sort - count
+| rename count as last_week_calls
+| head 10
+| join type=left sourcenumber 
+[search earliest=-2w@w latest=-1@w  
+index="policyguru_data" resourceId="enum*" NOT disposition.disposition="*"
+| rex field=meta "direction(?&lt;place_holder&gt;.)(?&lt;direction&gt;.*)"
+| search direction="INBOUND"
+| rename connections{}.left.facets{}.number as sourcenumber
+| eval sourcenumber=mvdedup(sourcenumber)
+| stats count by sourcenumber
+| sort - count
+| rename count as previous_week_calls
+]
+| eval perc_diff = ROUND(((last_week_calls - previous_week_calls) / previous_week_calls)*100,1)
+| table sourcenumber last_week_calls previous_week_calls perc_diff
+| rename last_week_calls as calls previous_week_calls as previous</query>
+          <earliest>-7d@w0</earliest>
+          <latest>@w0</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Top Inbound Destination Numbers</title>
+        <search>
+          <query>index="policyguru_data" resourceId="enum*" NOT disposition.disposition="*"
+| rex field=meta "direction(?&lt;place_holder&gt;.)(?&lt;direction&gt;.*)"
+| search direction="INBOUND"
+| rename connections{}.right.facets{}.number as destinationnumber
+| eval destinationnumber=mvdedup(destinationnumber)
+| stats count by destinationnumber
+| sort - count
+| rename count as last_week_calls
+| head 10
+| join type=left destinationnumber 
+[search earliest=-2w@w latest=-1@w  
+index="policyguru_data" resourceId="enum*" NOT disposition.disposition="*"
+| rex field=meta "direction(?&lt;place_holder&gt;.)(?&lt;direction&gt;.*)"
+| search direction="INBOUND"
+| rename connections{}.right.facets{}.number as destinationnumber
+| eval destinationnumber=mvdedup(destinationnumber)
+| stats count by destinationnumber
+| sort - count
+| rename count as previous_week_calls
+]
+| eval perc_diff = ROUND(((last_week_calls - previous_week_calls) / previous_week_calls)*100,1)
+| table destinationnumber last_week_calls previous_week_calls perc_diff
+| rename last_week_calls as calls previous_week_calls as previous</query>
+          <earliest>-7d@w0</earliest>
+          <latest>@w0</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Suspicious Callers | Spikey (10+ calls and &gt;50% on a single day)</title>
+        <search>
+          <query>index="policyguru_data" resourceId="enum*" NOT disposition.disposition="*"
+| rex field=meta "direction(?&lt;place_holder&gt;.)(?&lt;direction&gt;.*)"
+| search direction="INBOUND"
+| rename connections{}.left.facets{}.number as sourcenumber
+| eval sourcenumber=mvdedup(sourcenumber)
+| table guid sourcenumber destinationnumber
+| stats count as total_calls by sourcenumber
+| search total_calls  &gt; 10
+| join type=left sourcenumber  max=7
+[
+| search index="policyguru_data" resourceId="enum*" NOT disposition.disposition="*"
+| rex field=meta "direction(?&lt;place_holder&gt;.)(?&lt;direction&gt;.*)"
+| search direction="INBOUND"
+| rename connections{}.left.facets{}.number as sourcenumber
+| eval sourcenumber=mvdedup(sourcenumber)
+| bucket _time span=day 
+| stats count as day_calls by _time sourcenumber
+| eval timecol=_time
+]
+| eval c_time=strftime(timecol,"%Y-%m-%d")
+| table sourcenumber c_time total_calls day_calls timecol
+| eval perc_day=ROUND(day_calls/total_calls,3)*100
+| search perc_day &gt; 50</query>
+          <earliest>-7d@w0</earliest>
+          <latest>@w0</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Suspicious Callers | Spread</title>
+        <search>
+          <query>index="policyguru_data" resourceId="enum*" NOT disposition.disposition="*"
+| rex field=meta "direction(?&lt;place_holder&gt;.)(?&lt;direction&gt;.*)"
+| search direction="INBOUND"
+| rename connections{}.left.facets{}.number as sourcenumber
+| eval sourcenumber=mvdedup(sourcenumber)
+| rename connections{}.right.facets{}.number as destinationnumber
+| eval destinationnumber=mvdedup(destinationnumber) 
+| table guid sourcenumber destinationnumber
+| stats count dc(destinationnumber) as spread by sourcenumber
+| eval perc_spread = ROUND(spread/count,1)</query>
+          <earliest>-7d@w0</earliest>
+          <latest>@w0</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Suspicious Callers | Invalid Format</title>
+        <search>
+          <query>index="policyguru_data" resourceId="enum*" NOT disposition.disposition="*"
+| rex field=meta "direction(?&lt;place_holder&gt;.)(?&lt;direction&gt;.*)"
+| search direction="INBOUND"
+| rename connections{}.left.facets{}.number as sourcenumber
+| eval sourcenumber=mvdedup(sourcenumber)
+| regex sourcenumber="^\+1[0-9]{3}[0-1]{1}[0-9]{6}|^\+1([0-9]{0,9})$|^\+1([01][0-9][0-9]|200)[0-9]{7}$|^\+1[0-9]{11,}|^\+[0-9]{16,}"
+| stats count as calls by sourcenumber</query>
+          <earliest>-7d@w0</earliest>
+          <latest>@w0</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Top Countries (NEED TO MODIFY SPL TO OUTBOUND)</title>
+        <search>
+          <query>index="policyguru_data" resourceId="enum*" NOT disposition.disposition="*"
+| rex field=meta "direction(?&lt;place_holder&gt;.)(?&lt;direction&gt;.*)"
+| search direction="INBOUND"
+| rename connections{}.right.facets{}.country as destination_country
+| eval destination_country=mvdedup(destination_country)
+| table destination_country guid
+| stats count by destination_country
+| sort -count
+| rename destination_country as "Country"</query>
+          <earliest>-7d@w0</earliest>
+          <latest>@w0</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <table>
+        <title>Top Countries (NEED TO MODIFY SPL TO OUTBOUND)</title>
+        <search>
+          <query>index="policyguru_data" resourceId="enum*" NOT disposition.disposition="*"
+| rex field=meta "direction(?&lt;place_holder&gt;.)(?&lt;direction&gt;.*)"
+| search direction="INBOUND"
+| rename connections{}.right.facets{}.country as destination_country
+| eval destination_country=mvdedup(destination_country)
+| table destination_country guid
+| stats count as last_week_calls by destination_country
+| sort -count
+| head 10
+| join type=left destination_country 
+[search earliest=-2w@w latest=-1@w  
+index="policyguru_data" resourceId="enum*" NOT disposition.disposition="*"
+index="policyguru_data" resourceId="enum*" NOT disposition.disposition="*"
+| rex field=meta "direction(?&lt;place_holder&gt;.)(?&lt;direction&gt;.*)"
+| search direction="INBOUND"
+| rename connections{}.right.facets{}.country as destination_country
+| eval destination_country=mvdedup(destination_country)
+| table destination_country guid
+| stats count as previous_week_calls by destination_country
+| sort -count
+]
+| eval perc_diff = ROUND(((last_week_calls - previous_week_calls) / previous_week_calls)*100,1)
+| table destination_country last_week_calls previous_week_calls perc_diff
+| rename destination_country as "Country"</query>
+          <earliest>-7d@w0</earliest>
+          <latest>@w0</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>
