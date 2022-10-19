@@ -1,0 +1,2 @@
+index="_internal" "15m Alert" | table _time index app savedsearch_name run_time alert_actions
+| timechart span=15m max(run_time) by savedsearch_name
