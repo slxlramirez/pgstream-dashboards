@@ -46,6 +46,46 @@
   </row>
   <row>
     <panel>
+      <chart>
+        <title>Calls by 15m</title>
+        <search base="cdr">
+          <query>| timechart span=15m count</query>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Top Destinations Called</title>
+        <search base="cdr">
+          <query>| top limit=10 destinationnumber</query>
+        </search>
+        <option name="drilldown">none</option>
+        <format type="number" field="percent">
+          <option name="precision">1</option>
+          <option name="unit">%</option>
+          <option name="useThousandSeparators">false</option>
+        </format>
+        <format type="number" field="count">
+          <option name="precision">0</option>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>By Routername</title>
+        <search base="cdr">
+          <query>| top limit=10 routername</query>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
       <table>
         <title>CDR</title>
         <search id="cdr">
