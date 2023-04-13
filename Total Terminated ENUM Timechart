@@ -14,7 +14,7 @@
       <chart>
         <title>NOTE THIS DASHBOARD USES ALLOW IN SPL BC ITS PROOF OF CONCEPT (NO TERMINATED IN OUR TESTING)</title>
         <search>
-          <query>index="policyguru_data" resourceId="enum*" disposition.disposition="*"
+          <query>index="policyguru_data" resourceId="enum*" disposition.disposition="TERMINATED"
 | table _time source sourcetype guid timestamp timestampStr 
 resourceId 
 disposition.disposition
@@ -22,7 +22,6 @@ disposition.dispositionEnum
 | rename
 disposition.disposition as disposition
 disposition.dispositionEnum as disposition_enum
-| search disposition="ALLOWED"
 | timechart span=15m count</query>
           <earliest>$field1.earliest$</earliest>
           <latest>$field1.latest$</latest>
